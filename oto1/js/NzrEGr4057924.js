@@ -12,7 +12,7 @@
       }
     (function() {
           try {
-              const clickeventList = [{"compKey":"5dd17eb","misc":{"type":"text"}},{"compKey":"a033a47","misc":{"type":"text"}}];
+              const clickeventList = [{"compKey":"19f2a97","misc":{"type":"button"}},{"compKey":"241ca6c","misc":{"type":"text"}},{"compKey":"5dd17eb","misc":{"type":"text"}},{"compKey":"a033a47","misc":{"type":"text"}}];
     
     
               clickeventList.forEach((comp, index) => {
