@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Angel Septenary — Divine Awakening Quiz</title>
+  <style>
+    :root{
+      --yellow:#FFD54F;
+      --accent:#2E1F1C;
+      --card:rgba(255,255,255,.78);
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; background:var(--yellow); color:var(--accent);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{min-height:100%; display:grid; place-items:center; padding:20px}
+    .card{width:min(820px, 100%); background:var(--card); backdrop-filter:saturate(120%) blur(4px);
+      border-radius:26px; box-shadow:0 20px 40px rgba(0,0,0,.12); padding:28px 26px 20px}
+    .head{display:flex; gap:14px; align-items:center; margin-bottom:8px}
+    .title{font-weight:700; font-size:28px; margin:0}
+    .sub{opacity:.85; margin:2px 0 0}
+    .progress{height:10px; background:#fff7; border-radius:99px; overflow:hidden}
+    .bar{height:100%; background:var(--accent); width:0%; transition:width .45s cubic-bezier(.2,.8,.2,1)}
+    .step{margin-top:16px}
+    .step h2{font-size:22px; margin:.2rem 0 .35rem}
+    .step p{margin:.2rem 0 1rem; font-size:18px}
+    .grid{display:grid; gap:12px}
+    .btn{
+      display:block; width:100%; text-align:left; border:2px solid var(--accent);
+      background:rgba(255,255,255,.92); color:var(--accent); border-radius:18px;
+      padding:14px 16px; font-weight:600; cursor:pointer; box-shadow:0 2px 0 rgba(46,31,28,.12);
+      transition: transform .12s ease, box-shadow .12s ease, background .2s ease
+    }
+    .btn:hover{transform:translateY(-1px); box-shadow:0 6px 14px rgba(46,31,28,.18); background:#fff}
+    .row{display:flex; justify-content:space-between; align-items:center; margin-top:10px}
+    .back{border:2px solid var(--accent); background:transparent; color:var(--accent); border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer}
+    .back:disabled{opacity:.4; cursor:not-allowed}
+    .muted{opacity:.7; font-size:14px}
+
+    /* Result */
+    .result{margin-top:18px; border:2px solid var(--accent); border-radius:18px; background:#fff; padding:18px}
+    .cta{display:inline-block; background:var(--accent); color:var(--yellow); border-radius:14px; padding:12px 18px; font-weight:800; text-decoration:none}
+    .cta:hover{filter:brightness(1.02)}
+    .ghost{border:2px solid var(--accent); background:transparent; color:var(--accent); border-radius:14px; padding:12px 18px; font-weight:700}
+
+    /* Simple fades */
+    .fade-enter{opacity:0; transform:translateY(10px)}
+    .fade-enter-active{opacity:1; transform:translateY(0); transition:opacity .25s ease, transform .25s ease}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <!-- Inline angel glyph (matches the logo vibe) -->
+        <svg width="44" height="44" viewBox="0 0 64 64" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+          <circle cx="32" cy="26" r="3" />
+          <ellipse cx="32" cy="16" rx="10" ry="3.5" />
+          <path d="M10 28c7 6 14 9 22 9s15-3 22-9" />
+          <path d="M32 29v18" />
+          <path d="M24 47l8-12 8 12" />
+          <circle cx="12" cy="34" r="1" />
+          <circle cx="52" cy="34" r="1" />
+        </svg>
+        <div>
+          <h1 class="title">Angel Septenary</h1>
+          <p class="sub">Divine Awakening Quiz</p>
+        </div>
+      </div>
+
+      <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="100">
+        <div id="bar" class="bar"></div>
+      </div>
+
+      <div id="step" class="step"></div>
+
+      <div class="row">
+        <button id="back" class="back">Back</button>
+        <div class="muted" id="counter">Step 1 of 10</div>
+      </div>
+
+      <div id="result" class="result" style="display:none"></div>
+
+      <p class="muted" style="text-align:center; margin-top:16px">This experience is inspired by sacred symbolism and the number seven — align your heart, mind, and spirit.</p>
+    </div>
+  </div>
+
+  <script>
+    const ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+
+    const STEPS = [
+      {id:1,title:"The Calling",question:"Have you ever felt like a higher force has been trying to send you a message lately?",options:["Yes, constantly","Sometimes","Not really, but I’m open to it"]},
+      {id:2,title:"The Light Within",question:"When you close your eyes and breathe deeply, what do you feel closest to right now?",options:["Peace and calm","Confusion and fatigue","A mysterious energy around me"]},
+      {id:3,title:"The Guardian’s Whisper",question:"Do you believe each of us has a Guardian Angel guiding us through our toughest moments?",options:["Absolutely","I want to believe","I’m not sure"]},
+      {id:4,title:"The Sacred Number Seven",question:"The number seven is known as the number of divine perfection — how often do you see it around you (like 7:07, 777, etc.)?",options:["All the time","Sometimes","Rarely"]},
+      {id:5,title:"The Divine Frequency",question:"Choose the energy you wish to attract most in your life right now:",options:["Healing","Protection","Abundance","Guidance"]},
+      {id:6,title:"The Test of Faith",question:"When things don’t go as planned, what do you usually do?",options:["I pray or meditate","I overthink","I wait for a sign from the universe"]},
+      {id:7,title:"The Celestial Path",question:"Imagine your Angel standing before you. What color do you see shining from their aura?",options:["Gold","Blue","White","Pink"]},
+      {id:8,title:"The Hidden Burden",question:"What’s been weighing on your spirit lately?",options:["Anxiety or fear","Lack of purpose","Emotional pain","Financial or physical struggle"]},
+      {id:9,title:"The Divine Connection",question:"How open are you to connecting with your Guardian Angel through sound and sacred frequency?",options:["Very open — I’ve been waiting for this","Curious — I want to try","Skeptical, but intrigued"]},
+      {id:10,title:"Revelation",question:"You’ve completed the Angel Septenary test. Are you ready to receive your angelic message?",options:["Reveal my Angel Message"]}
+    ];
+
+    const state = { step:1, answers:{} };
+
+    const elStep = document.getElementById('step');
+    const elBar = document.getElementById('bar');
+    const elBack = document.getElementById('back');
+    const elCounter = document.getElementById('counter');
+    const elResult = document.getElementById('result');
+
+    function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+
+    function updateProgress(){
+      const pct = clamp(((state.step-1)/(STEPS.length-1))*100,0,100);
+      elBar.style.width = pct + '%';
+      elBar.parentElement.setAttribute('aria-valuenow', pct.toFixed(0));
+      elCounter.textContent = `Step ${state.step} of ${STEPS.length}`;
+      elBack.disabled = state.step === 1;
+    }
+
+    function renderStep(){
+      const s = STEPS[state.step-1];
+      elResult.style.display = 'none';
+
+      const optButtons = s.options.map(o => `<button class="btn" data-opt="${o.replace(/\"/g,'&quot;')}">${o}<span style="float:right;opacity:.7">→</span></button>`).join('');
+      elStep.innerHTML = `<div class="fade-enter" id="anim"><h2>${s.title}</h2><p>${s.question}</p><div class="grid">${optButtons}</div></div>`;
+      requestAnimationFrame(()=>{
+        const anim = document.getElementById('anim');
+        anim.classList.add('fade-enter-active');
+      });
+
+      elStep.querySelectorAll('[data-opt]').forEach(btn => {
+        btn.addEventListener('click', () => onSelect(btn.getAttribute('data-opt')));
+      });
+
+      updateProgress();
+    }
+
+    function onSelect(value){
+      const id = STEPS[state.step-1].id;
+      state.answers[id] = value;
+
+      if(state.step < STEPS.length){
+        state.step += 1;
+        renderStep();
+      } else {
+        // finished
+        showSummary();
+      }
+    }
+
+    function showSummary(){
+      const summary = buildSummary(state.answers);
+      elResult.style.display = 'block';
+      elResult.innerHTML = `
+        <h3 style="margin:.2rem 0 8px; font-size:20px">Your Angelic Insight</h3>
+        <p style="margin:0 0 10px">${summary.message}</p>
+        <ul style="margin:0 0 14px 20px">
+          <li><strong>Primary Blessing:</strong> ${summary.blessing}</li>
+          <li><strong>Guiding Archangel:</strong> ${summary.archangel}</li>
+          <li><strong>Affirmation:</strong> <em>“${summary.affirmation}”</em></li>
+        </ul>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <a class="cta" id="cta" href="#checkout">Reveal My Angel Message Now</a>
+          <button class="ghost" id="retake">Retake Quiz</button>
+        </div>
+      `;
+
+      document.getElementById('retake').addEventListener('click', () => {
+        state.step = 1; state.answers = {}; renderStep(); elResult.style.display='none';
+      });
+
+      document.getElementById('cta').addEventListener('click', (e) => {
+        // Replace this with your checkout/VSL link
+        // e.g., window.location.href = 'https://seu-dominio.com/checkout';
+      });
+    }
+
+    function buildSummary(answers){
+      const desired = answers[5];
+      const aura = answers[7];
+      let archangel = 'Michael';
+      if(aura === 'Blue') archangel = 'Gabriel';
+      if(aura === 'White') archangel = 'Raphael';
+      if(aura === 'Pink') archangel = 'Chamuel';
+
+      const blessingMap = {
+        'Healing': 'Restoration of body and soul — renewal flows through you.',
+        'Protection': 'A shield of light surrounds you; fear dissolves.',
+        'Abundance': 'Doors open and provision follows your purpose.',
+        'Guidance': 'Clarity washes over confusion; next steps appear.'
+      };
+      const affirmationMap = {
+        'Healing': 'I receive divine healing and wholeness now.',
+        'Protection': 'I walk safely within the light of my Guardian Angel.',
+        'Abundance': 'I am aligned with providence; blessings flow to me.',
+        'Guidance': 'I am led by light; my path is clear.'
+      };
+
+      const blessing = blessingMap[desired] || 'Grace accompanies your next chapter.';
+      const affirmation = affirmationMap[desired] || 'I welcome divine alignment in all things.';
+      const message = `Your angelic field resonates with ${aura || 'luminous'} light. The Angel Septenary ritual will open seven sacred channels to anchor ${desired || 'blessing'} in your life. This is your moment to listen and receive.`;
+      return { archangel, blessing, affirmation, message };
+    }
+
+    // Back button
+    elBack.addEventListener('click', () => {
+      state.step = Math.max(1, state.step - 1);
+      renderStep();
+    });
+
+    // Init
+    renderStep();
+  </script>
+</body>
+</html>
